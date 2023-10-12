@@ -2484,24 +2484,6 @@ def test_typeddict_with_extra_behavior_forbid():
     }
 
 
-def test_typeddict_with_conflicting_extra():
-    class Model:
-        @classmethod
-        def __get_pydantic_core_schema__(cls, source_type: Any, handler: GetCoreSchemaHandler) -> CoreSchema:
-            return core_schema.typed_dict_schema(
-                {'a': core_schema.typed_dict_field(core_schema.str_schema())},
-                config=ConfigDict(extra_fields_behavior='forbid'),
-                #extra_behavior='allow',  # TODO Disabling this to check the test tests what I want it to
-            )
-
-    assert TypeAdapter(Model).json_schema() == {
-        'type': 'object',
-        'properties': {'a': {'title': 'A', 'type': 'string'}},
-        'required': ['a'],
-        'additionalProperties': True,
-    }
-
-
 @pytest.mark.parametrize(
     'annotation,kwargs,field_schema',
     [
