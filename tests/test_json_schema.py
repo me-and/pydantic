@@ -2397,25 +2397,30 @@ def test_typeddict_with_extra_allow():
         __pydantic_config__ = ConfigDict(extra='allow')  # type: ignore
         a: str
 
-    class SchemaTest:
-        __pydantic_config__ = ConfigDict(title='Model')
+    assert TypeAdapter(Model).json_schema() == {
+        'title': 'Model',
+        'type': 'object',
+        'properties': {'a': {'title': 'A', 'type': 'string'}},
+        'required': ['a'],
+        'additionalProperties': True,
+    }
+
+
+def test_typeddict_with_extra_behavior_allow():
+    class Model:
         @classmethod
-        def __get_pydantic_core_schema__(
-            cls, source_type: Any, handler: GetCoreSchemaHandler
-        ) -> CoreSchema:
+        def __get_pydantic_core_schema__(cls, source_type: Any, handler: GetCoreSchemaHandler) -> CoreSchema:
             return core_schema.typed_dict_schema(
                 {'a': core_schema.typed_dict_field(core_schema.str_schema())},
                 extra_behavior='allow',
             )
 
-    for t in (Model, SchemaTest):
-        assert TypeAdapter(t).json_schema() == {
-            'title': 'Model',
-            'type': 'object',
-            'properties': {'a': {'title': 'A', 'type': 'string'}},
-            'required': ['a'],
-            'additionalProperties': True,
-        }
+    assert TypeAdapter(Model).json_schema() == {
+        'type': 'object',
+        'properties': {'a': {'title': 'A', 'type': 'string'}},
+        'required': ['a'],
+        'additionalProperties': True,
+    }
 
 
 def test_typeddict_with_extra_ignore():
@@ -2423,24 +2428,28 @@ def test_typeddict_with_extra_ignore():
         __pydantic_config__ = ConfigDict(extra='ignore')  # type: ignore
         a: str
 
-    class SchemaTest:
-        __pydantic_config__ = ConfigDict(title='Model')
+    assert TypeAdapter(Model).json_schema() == {
+        'title': 'Model',
+        'type': 'object',
+        'properties': {'a': {'title': 'A', 'type': 'string'}},
+        'required': ['a'],
+    }
+
+
+def test_typeddict_with_extra_behavior_ignore():
+    class Model:
         @classmethod
-        def __get_pydantic_core_schema__(
-            cls, source_type: Any, handler: GetCoreSchemaHandler
-        ) -> CoreSchema:
+        def __get_pydantic_core_schema__(cls, source_type: Any, handler: GetCoreSchemaHandler) -> CoreSchema:
             return core_schema.typed_dict_schema(
                 {'a': core_schema.typed_dict_field(core_schema.str_schema())},
                 extra_behavior='ignore',
             )
 
-    for t in (Model, SchemaTest):
-        assert TypeAdapter(t).json_schema() == {
-            'title': 'Model',
-            'type': 'object',
-            'properties': {'a': {'title': 'A', 'type': 'string'}},
-            'required': ['a'],
-        }
+    assert TypeAdapter(Model).json_schema() == {
+        'type': 'object',
+        'properties': {'a': {'title': 'A', 'type': 'string'}},
+        'required': ['a'],
+    }
 
 
 def test_typeddict_with_extra_forbid():
@@ -2449,47 +2458,48 @@ def test_typeddict_with_extra_forbid():
         __pydantic_config__ = ConfigDict(extra='forbid')
         a: str
 
-    class SchemaTest:
-        __pydantic_config__ = ConfigDict(title='Model')
+    assert TypeAdapter(Model).json_schema() == {
+        'title': 'Model',
+        'type': 'object',
+        'properties': {'a': {'title': 'A', 'type': 'string'}},
+        'required': ['a'],
+        'additionalProperties': False,
+    }
+
+
+def test_typeddict_with_extra_behavior_forbid():
+    class Model:
         @classmethod
-        def __get_pydantic_core_schema__(
-            cls, source_type: Any, handler: GetCoreSchemaHandler
-        ) -> CoreSchema:
+        def __get_pydantic_core_schema__(cls, source_type: Any, handler: GetCoreSchemaHandler) -> CoreSchema:
             return core_schema.typed_dict_schema(
                 {'a': core_schema.typed_dict_field(core_schema.str_schema())},
                 extra_behavior='forbid',
             )
 
-    for t in (Model, SchemaTest):
-        assert TypeAdapter(t).json_schema() == {
-            'title': 'Model',
-            'type': 'object',
-            'properties': {'a': {'title': 'A', 'type': 'string'}},
-            'required': ['a'],
-            'additionalProperties': False,
-        }
+    assert TypeAdapter(Model).json_schema() == {
+        'type': 'object',
+        'properties': {'a': {'title': 'A', 'type': 'string'}},
+        'required': ['a'],
+        'additionalProperties': False,
+    }
 
 
 def test_typeddict_with_conflicting_extra():
-    class SchemaTest:
-        __pydantic_config__ = ConfigDict(extra='forbid')
+    class Model:
         @classmethod
-        def __get_pydantic_core_schema__(
-            cls, source_type: Any, handler: GetCoreSchemaHandler
-        ) -> CoreSchema:
+        def __get_pydantic_core_schema__(cls, source_type: Any, handler: GetCoreSchemaHandler) -> CoreSchema:
             return core_schema.typed_dict_schema(
                 {'a': core_schema.typed_dict_field(core_schema.str_schema())},
+                config=ConfigDict(extra='forbid'),
                 #extra_behavior='allow',  # TODO Disabling this to check the test tests what I want it to
             )
 
     assert TypeAdapter(SchemaTest).json_schema() == {
-        'title': 'SchemaTest',
         'type': 'object',
         'properties': {'a': {'title': 'A', 'type': 'string'}},
         'required': ['a'],
         'additionalProperties': True,
     }
-
 
 
 @pytest.mark.parametrize(
