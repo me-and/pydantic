@@ -2397,13 +2397,25 @@ def test_typeddict_with_extra_allow():
         __pydantic_config__ = ConfigDict(extra='allow')  # type: ignore
         a: str
 
-    assert TypeAdapter(Model).json_schema() == {
-        'title': 'Model',
-        'type': 'object',
-        'properties': {'a': {'title': 'A', 'type': 'string'}},
-        'required': ['a'],
-        'additionalProperties': True,
-    }
+    class SchemaTest:
+        __pydantic_config__ = ConfigDict(title='Model')
+        @classmethod
+        def __get_pydantic_core_schema__(
+            cls, core_schema: CoreSchema, handler: GetCoreSchemaHandler
+        ) -> CoreSchema:
+            return core_schema.typed_dict_schema(
+                {'a': core_schema.typed_dict_field(core_schema.str_schema())},
+                extra_behavior='allow',
+            )
+
+    for t in (Model, SchemaTest):
+        assert TypeAdapter(t).json_schema() == {
+            'title': 'Model',
+            'type': 'object',
+            'properties': {'a': {'title': 'A', 'type': 'string'}},
+            'required': ['a'],
+            'additionalProperties': True,
+        }
 
 
 def test_typeddict_with_extra_ignore():
@@ -2411,12 +2423,24 @@ def test_typeddict_with_extra_ignore():
         __pydantic_config__ = ConfigDict(extra='ignore')  # type: ignore
         a: str
 
-    assert TypeAdapter(Model).json_schema() == {
-        'title': 'Model',
-        'type': 'object',
-        'properties': {'a': {'title': 'A', 'type': 'string'}},
-        'required': ['a'],
-    }
+    class SchemaTest:
+        __pydantic_config__ = ConfigDict(title='Model')
+        @classmethod
+        def __get_pydantic_core_schema__(
+            cls, core_schema: CoreSchema, handler: GetCoreSchemaHandler
+        ) -> CoreSchema:
+            return core_schema.typed_dict_schema(
+                {'a': core_schema.typed_dict_field(core_schema.str_schema())},
+                extra_behavior='ignore',
+            )
+
+    for t in (Model, SchemaTest):
+        assert TypeAdapter(t).json_schema() == {
+            'title': 'Model',
+            'type': 'object',
+            'properties': {'a': {'title': 'A', 'type': 'string'}},
+            'required': ['a'],
+        }
 
 
 def test_typeddict_with_extra_forbid():
@@ -2425,13 +2449,55 @@ def test_typeddict_with_extra_forbid():
         __pydantic_config__ = ConfigDict(extra='forbid')
         a: str
 
-    assert TypeAdapter(Model).json_schema() == {
-        'title': 'Model',
+    class SchemaTest:
+        __pydantic_config__ = ConfigDict(title='Model')
+        @classmethod
+        def __get_pydantic_core_schema__(
+            cls, core_schema: CoreSchema, handler: GetCoreSchemaHandler
+        ) -> CoreSchema:
+            return core_schema.typed_dict_schema(
+                {'a': core_schema.typed_dict_field(core_schema.str_schema())},
+                extra_behavior='forbid',
+            )
+
+    for t in (Model, SchemaTest):
+        assert TypeAdapter(t).json_schema() == {
+            'title': 'Model',
+            'type': 'object',
+            'properties': {'a': {'title': 'A', 'type': 'string'}},
+            'required': ['a'],
+            'additionalProperties': False,
+        }
+
+
+def test_typeddict_with_conflicting_extra():
+    class SchemaTest:
+        __pydantic_config__ = ConfigDict(extra='forbid')
+        @classmethod
+        def __get_pydantic_core_schema__(
+            cls, core_schema: CoreSchema, handler: GetCoreSchemaHandler
+        ) -> CoreSchema:
+            return core_schema.typed_dict_schema(
+                {'a': core_schema.typed_dict_field(core_schema.str_schema())},
+                extra_behavior='allow',
+            )
+
+    assert TypeAdapter(t).json_schema() == {
+        'title': 'SchemaTest',
         'type': 'object',
         'properties': {'a': {'title': 'A', 'type': 'string'}},
         'required': ['a'],
-        'additionalProperties': False,
+        'additionalProperties': True,
     }
+
+
+def test_typeddict_with_extra_behavior_allow():
+
+    assert TypeAdapter(Test).json_schema() == {
+        'title': 'Test',
+        'type': 'object',
+        'properties
+
 
 
 @pytest.mark.parametrize(
