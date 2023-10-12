@@ -2401,7 +2401,7 @@ def test_typeddict_with_extra_allow():
         __pydantic_config__ = ConfigDict(title='Model')
         @classmethod
         def __get_pydantic_core_schema__(
-            cls, core_schema: CoreSchema, handler: GetCoreSchemaHandler
+            cls, source_type: Any, handler: GetCoreSchemaHandler
         ) -> CoreSchema:
             return core_schema.typed_dict_schema(
                 {'a': core_schema.typed_dict_field(core_schema.str_schema())},
@@ -2427,7 +2427,7 @@ def test_typeddict_with_extra_ignore():
         __pydantic_config__ = ConfigDict(title='Model')
         @classmethod
         def __get_pydantic_core_schema__(
-            cls, core_schema: CoreSchema, handler: GetCoreSchemaHandler
+            cls, source_type: Any, handler: GetCoreSchemaHandler
         ) -> CoreSchema:
             return core_schema.typed_dict_schema(
                 {'a': core_schema.typed_dict_field(core_schema.str_schema())},
@@ -2453,7 +2453,7 @@ def test_typeddict_with_extra_forbid():
         __pydantic_config__ = ConfigDict(title='Model')
         @classmethod
         def __get_pydantic_core_schema__(
-            cls, core_schema: CoreSchema, handler: GetCoreSchemaHandler
+            cls, source_type: Any, handler: GetCoreSchemaHandler
         ) -> CoreSchema:
             return core_schema.typed_dict_schema(
                 {'a': core_schema.typed_dict_field(core_schema.str_schema())},
@@ -2475,14 +2475,14 @@ def test_typeddict_with_conflicting_extra():
         __pydantic_config__ = ConfigDict(extra='forbid')
         @classmethod
         def __get_pydantic_core_schema__(
-            cls, core_schema: CoreSchema, handler: GetCoreSchemaHandler
+            cls, source_type: Any, handler: GetCoreSchemaHandler
         ) -> CoreSchema:
             return core_schema.typed_dict_schema(
                 {'a': core_schema.typed_dict_field(core_schema.str_schema())},
                 #extra_behavior='allow',  # TODO Disabling this to check the test tests what I want it to
             )
 
-    assert TypeAdapter(t).json_schema() == {
+    assert TypeAdapter(SchemaTest).json_schema() == {
         'title': 'SchemaTest',
         'type': 'object',
         'properties': {'a': {'title': 'A', 'type': 'string'}},
