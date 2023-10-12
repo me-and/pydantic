@@ -2494,7 +2494,7 @@ def test_typeddict_with_conflicting_extra():
                 #extra_behavior='allow',  # TODO Disabling this to check the test tests what I want it to
             )
 
-    assert TypeAdapter(SchemaTest).json_schema() == {
+    assert TypeAdapter(Model).json_schema() == {
         'type': 'object',
         'properties': {'a': {'title': 'A', 'type': 'string'}},
         'required': ['a'],
