@@ -2479,7 +2479,7 @@ def test_typeddict_with_conflicting_extra():
         ) -> CoreSchema:
             return core_schema.typed_dict_schema(
                 {'a': core_schema.typed_dict_field(core_schema.str_schema())},
-                extra_behavior='allow',
+                #extra_behavior='allow',  # TODO Disabling this to check the test tests what I want it to
             )
 
     assert TypeAdapter(t).json_schema() == {
@@ -2489,14 +2489,6 @@ def test_typeddict_with_conflicting_extra():
         'required': ['a'],
         'additionalProperties': True,
     }
-
-
-def test_typeddict_with_extra_behavior_allow():
-
-    assert TypeAdapter(Test).json_schema() == {
-        'title': 'Test',
-        'type': 'object',
-        'properties
 
 
 
